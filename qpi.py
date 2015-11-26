@@ -14,6 +14,7 @@ Example:
     For more information:
         $ python qpi.py --help
         $ python qpi.py submit_names --help
+        $ python qpi.py submit_ids --help
 
     Set the  environment variables to avoid being prompted each time:
         1. QUICKPIN_USER
