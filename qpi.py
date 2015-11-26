@@ -6,14 +6,14 @@ Wrapper for the QuickPin API.
 Includes a simple command line client.
 
 Example:
-    $ python qpi.py submit names usernames.csv --interval=5
+    $ python qpi.py submit_names usernames.csv twitter --interval=5
 
     This will parse the usernames contained (1 per line) in the usernames.csv
     file and submit them 1 by one at an interval of 5 seconds.
 
     For more information:
         $ python qpi.py --help
-        $ python qpi.py submit_profiles --help
+        $ python qpi.py submit_names --help
 
     Set the  environment variables to avoid being prompted each time:
         1. QUICKPIN_USER
@@ -35,8 +35,9 @@ import time
 
 class QPI():
 
-    def __init__(self, app_url, username, password):
-        requests.packages.urllib3.disable_warnings()
+    def __init__(self, app_url, username, password, disable_warnings=True):
+        if disable_warnings:
+            requests.packages.urllib3.disable_warnings()
         self.app_url = app_url.rstrip('/')
         self.username = username
         self.password = password
@@ -123,11 +124,11 @@ class QPI():
                 'site': site
             }
             profiles.append(profile)
-        response = self.submit_profiles(profiles=profiles,
+        responses = self.submit_profiles(profiles=profiles,
                                         stub=stub,
                                         chunk_size=chunk_size,
                                         interval=interval)
-        return response
+        return responses
 
     def submit_profiles(self, profiles, stub=False, chunk_size=1, interval=5):
         """
@@ -205,11 +206,13 @@ def submit_names(input, site, stub, chunk, interval, username, password, url):
     usernames = []
     qpi = QPI(url, username, password)
     qpi.authenticate()
+
     while True:
             file_chunk = input.read(1024)
             if not file_chunk:
                 break
             usernames += file_chunk.splitlines()
+
     responses = qpi.submit_usernames(usernames=usernames,
                                      site=site,
                                      stub=stub,
@@ -246,11 +249,13 @@ def submit_ids(input, site, stub, chunk, interval, username, password, url):
     user_ids = []
     qpi = QPI(url, username, password)
     qpi.authenticate()
+
     while True:
             file_chunk = input.read(1024)
             if not file_chunk:
                 break
             user_ids += file_chunk.splitlines()
+
     responses = qpi.submit_user_ids(user_ids=user_ids,
                                     site=site,
                                     stub=stub,
