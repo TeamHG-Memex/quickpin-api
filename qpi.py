@@ -32,6 +32,15 @@ import requests
 import click
 import os
 import time
+import sys
+
+
+class QPIError(Exception):
+   """
+    Represents a human-facing exception.
+   """
+   def __init__(self, message):
+       self.message = message
 
 
 class QPI():
@@ -154,6 +163,9 @@ class QPI():
                 },
             ]
         """
+        if !this.authenticated:
+            raise QPIError("Please authenticate first.")
+
         responses = []
         for chunk_start in range(0, len(profiles), chunk_size):
             chunk_end = chunk_start + chunk_size
