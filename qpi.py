@@ -207,13 +207,10 @@ def submit_names(input, site, stub, chunk, interval, username, password, url):
     usernames = []
     qpi = QPI(url, username, password)
     qpi.authenticate()
-
-    while True:
-            file_chunk = input.read(1024)
-            if not file_chunk:
-                break
-            usernames += file_chunk.splitlines()
-
+    usernames = input.read().splitlines()
+    if len(usernames) == 0:
+        click.echo('Empty file')
+        sys.exit()
     responses = qpi.submit_usernames(usernames=usernames,
                                      site=site,
                                      stub=stub,
@@ -250,13 +247,10 @@ def submit_ids(input, site, stub, chunk, interval, username, password, url):
     user_ids = []
     qpi = QPI(url, username, password)
     qpi.authenticate()
-
-    while True:
-            file_chunk = input.read(1024)
-            if not file_chunk:
-                break
-            user_ids += file_chunk.splitlines()
-
+    user_ids = input.read().splitlines()
+    if len(user_ids) == 0:
+        click.echo('Empty file')
+        sys.exit()
     responses = qpi.submit_user_ids(user_ids=user_ids,
                                     site=site,
                                     stub=stub,
