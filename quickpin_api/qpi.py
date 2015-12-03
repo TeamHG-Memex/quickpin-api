@@ -163,7 +163,7 @@ class QPI():
                 },
             ]
         """
-        if !this.authenticated:
+        if not self.authenticated:
             raise QPIError("Please authenticate first.")
 
         responses = []
