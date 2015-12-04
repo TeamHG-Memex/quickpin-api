@@ -167,23 +167,27 @@ class QPI():
             raise QPIError("Please authenticate first.")
 
         responses = []
-        for chunk_start in range(0, len(profiles), chunk_size):
-            chunk_end = chunk_start + chunk_size
-            chunk = profiles[chunk_start:chunk_end]
-            print('Requesting {} - {}'.format(chunk_start, chunk_end))
-            payload = {
-                'profiles': chunk,
-                'stub': stub
-            }
-            response = requests.post(self.profile_url,
-                                     headers=self.headers,
-                                     json=payload,
-                                     verify=False)
-            response.raise_for_status()
-            responses.append(response.content)
-            time.sleep(interval)
+        with click.progressbar(
+            length=len(profiles),
+            label='Submitting profiles to QuickPin'
+        ) as bar:
+            for chunk_start in range(0, len(profiles), chunk_size):
+                chunk_end = chunk_start + chunk_size
+                chunk = profiles[chunk_start:chunk_end]
+                bar.update(len(chunk))
+                payload = {
+                    'profiles': chunk,
+                    'stub': stub
+                }
+                response = requests.post(self.profile_url,
+                                        headers=self.headers,
+                                        json=payload,
+                                        verify=False)
+                response.raise_for_status()
+                responses.append(response.content)
+                time.sleep(interval)
 
-        return responses
+            return responses
 
 
 @click.group()
