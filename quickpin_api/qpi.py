@@ -231,7 +231,7 @@ class QPI():
             'rpp': rpp,
             'page': page,
         }
-
+        param_str = "&".join("%s=%s" % (k,v) for k,v in params.items())
         if type_ is not None:
             params['type'] = type_
         if facets is not None:
@@ -239,9 +239,9 @@ class QPI():
         if sort is not None:
             params['sort'] = sort
 
-        response = requests.get(self.profile_url,
+        response = requests.get(self.search_url,
                                 headers=self.headers,
-                                params=params,
+                                params=param_str,
                                 verify=False)
         print(response.request.url)
         response.raise_for_status()
@@ -356,7 +356,13 @@ def search(query, type, facets, page, rpp, sort, token, url):
                        'qpi.py authenticate --url [URL] --username [USERNAME] '
                        '--password [PASSWORD]')
     qpi = QPI(app_url=url, token=token)
-    response = qpi.search(query, type, facets, page, rpp, sort)
+    print query
+    response = qpi.search(query=query,
+                          type_=type,
+                          facets=facets,
+                          page=page,
+                          rpp=rpp,
+                          sort=sort)
     pprint(response.json())
 
 
