@@ -1,4 +1,5 @@
-# quickpin-api
+# QuickPin API
+
 Python wrapper for the QuickPin API
 
 Includes a simple command line client.
