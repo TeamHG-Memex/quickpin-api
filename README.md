@@ -16,16 +16,14 @@ $ python qpi.py submit_names --help
 $ python qpi.py submit_ids --help
 ```
 
-Set the  environment variables to avoid being prompted each time:
+Set environment variables to avoid being prompted each time:
 
-1. QUICKPIN_USER
-2. QUICKPIN_PASSWORD
-3. QUICKPIN_URL
+1. QUICKPIN_URL
+1. QUICKPIN_TOKEN
 
 
-## Example:
-```
-$ export QUICKPIN_USER=guest
-$ export QUICKPIN_PASSWORD=password
-$ export QUICKPIN_URL=https://example.com
+Example:
+```bash
+$ export QUICKPIN_URL="https://example.com"
+$ export QUICKPIN_TOKEN="1|2015-12-09T16:50:59.057635.Y5pm9qB_naw6FkOekcksiFRyMlY"
 ```

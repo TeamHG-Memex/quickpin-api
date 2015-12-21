@@ -243,7 +243,6 @@ class QPI():
                                 headers=self.headers,
                                 params=param_str,
                                 verify=False)
-        print(response.request.url)
         response.raise_for_status()
 
         return response
@@ -356,7 +355,6 @@ def search(query, type, facets, page, rpp, sort, token, url):
                        'qpi.py authenticate --url [URL] --username [USERNAME] '
                        '--password [PASSWORD]')
     qpi = QPI(app_url=url, token=token)
-    print query
     response = qpi.search(query=query,
                           type_=type,
                           facets=facets,
