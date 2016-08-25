@@ -271,12 +271,13 @@ def cli():
 @click.option('--url',
               prompt=True,
               default=lambda: os.environ.get('QUICKPIN_URL', ''))
-@click.argument('input', type=click.File('rb'))
+@click.argument('input', type=click.File('r'))
 @click.argument('site', type=click.Choice(['twitter', 'instagram']))
 def submit_names(input, site, stub, chunk, interval, token, url):
     usernames = []
-    qpi = QPI(token=token)
+    qpi = QPI(app_url=url, token=token)
     usernames = input.read().splitlines()
+    usernames = [username for username in usernames if username != '']
     if len(usernames) == 0:
         click.echo('Empty file')
         sys.exit()
@@ -306,13 +307,14 @@ def submit_names(input, site, stub, chunk, interval, token, url):
 @click.option('--url',
               prompt=True,
               default=lambda: os.environ.get('QUICKPIN_URL', ''))
-@click.argument('input', type=click.File('rb'))
+@click.argument('input', type=click.File('r'))
 @click.argument('site', type=click.Choice(['twitter', 'instagram']))
 def submit_ids(input, site, stub, chunk, interval, token, url):
     user_ids = []
     qpi = QPI(token=token)
     qpi.authenticate()
     user_ids = input.read().splitlines()
+    user_ids = [user_id for user_id in user_ids if user_id != '']
     if len(user_ids) == 0:
         click.echo('Empty file')
         sys.exit()
