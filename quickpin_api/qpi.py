@@ -74,7 +74,6 @@ class QPI():
         authenticated status.
         """
         payload = {'email': username, 'password': password}
-        print(payload)
         response = requests.post(self.auth_url, json=payload, verify=False)
         response.raise_for_status()
         try:
@@ -340,9 +339,6 @@ def cli(config, username, password, token, url):
 @click.option('--interval',
               default=5,
               help='request interval in seconds')
-@click.option('--url',
-              prompt=True,
-              default=lambda: os.environ.get('QUICKPIN_URL', ''))
 @click.argument('input', type=click.File('r'))
 @click.argument('site', type=click.Choice(['twitter', 'instagram']))
 @pass_config
@@ -380,7 +376,7 @@ def submit_names(config, input, site, stub, chunk, interval):
 @click.argument('input', type=click.File('r'))
 @click.argument('site', type=click.Choice(['twitter', 'instagram']))
 @pass_config
-def submit_ids(config, input, site, stub, chunk, interval,):
+def submit_ids(config, input, site, stub, chunk, interval):
     user_ids = []
     qpi = QPI(app_url=config.app_url, token=config.token)
     qpi.authenticate()
