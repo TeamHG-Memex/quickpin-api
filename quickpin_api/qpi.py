@@ -264,19 +264,19 @@ pass_config = click.make_pass_decorator(Config, ensure=True)
 @click.group()
 @click.option('--username',
               type=click.STRING,
-              help='Quickpin username',
+              help='Quickpin username.',
               required=False)
 @click.option('--password',
-              help='Quickpin password',
+              help='Quickpin password.',
               type=click.STRING,
               required=False)
 @click.option('--token',
-              help='Quickpin api token',
+              help='Quickpin API token.',
               envvar='QUICKPIN_TOKEN',
               type=click.STRING,
               required=False)
 @click.option('--url',
-              help='Quickpin URL',
+              help='Quickpin URL.',
               prompt=True,
               envvar='QUICKPIN_URL')
 @pass_config
@@ -343,6 +343,9 @@ def cli(config, username, password, token, url):
 @click.argument('site', type=click.Choice(['twitter', 'instagram']))
 @pass_config
 def submit_names(config, input, site, stub, chunk, interval):
+    """
+    Submit profiles by username.
+    """
     usernames = []
     qpi = QPI(app_url=config.app_url, token=config.token)
     usernames = input.read().splitlines()
@@ -377,14 +380,19 @@ def submit_names(config, input, site, stub, chunk, interval):
 @click.argument('site', type=click.Choice(['twitter', 'instagram']))
 @pass_config
 def submit_ids(config, input, site, stub, chunk, interval):
+    """
+    Submit profiles by ID.
+    """
     user_ids = []
     qpi = QPI(app_url=config.app_url, token=config.token)
     qpi.authenticate()
     user_ids = input.read().splitlines()
     user_ids = [user_id for user_id in user_ids if user_id != '']
+
     if len(user_ids) == 0:
         click.echo('Empty file')
         sys.exit()
+
     responses = qpi.submit_user_ids(user_ids=user_ids,
                                     site=site,
                                     stub=stub,
@@ -396,28 +404,27 @@ def submit_ids(config, input, site, stub, chunk, interval):
 @cli.command()
 @click.option('--type',
               type=click.STRING,
-              help='the type, e.g. profile, stub')
+              help='The type, e.g. profile, stub.')
 @click.option('--facets',
               type=click.STRING,
-              help='facet filters')
+              help='Facet filters.')
 @click.option('--page',
               default=1,
               type=click.INT,
-              help='result page index')
+              help='Result page index.')
 @click.option('--rpp',
               default=100,
               type=click.INT,
-              help='results per page')
+              help='Results per page.')
 @click.option('--sort',
               type=click.STRING,
-              help='column to sort by')
+              help='Column to sort by.')
 @click.argument('query', type=click.STRING)
 @pass_config
 def search(config, query, type, facets, page, rpp, sort):
-    if config.token is None:
-        raise QPIError('No token found. Please authenticate first by running '
-                       'qpi.py authenticate --url [URL] --username [USERNAME] '
-                       '--password [PASSWORD]')
+    """
+    Search profiles.
+    """
     qpi = QPI(app_url=config.app_url, token=config.token)
     response = qpi.search(query=query,
                           type_=type,
@@ -429,24 +436,14 @@ def search(config, query, type, facets, page, rpp, sort):
 
 
 @cli.command()
-@click.option('--username',
-              prompt=True,
-              default=lambda: os.environ.get('QUICKPIN_USER', ''))
-@click.option('--password',
-              prompt=True,
-              hide_input=True,
-              default=lambda: os.environ.get('QUICKPIN_PASSWORD', ''))
-@click.option('--url',
-              prompt=True,
-              default=lambda: os.environ.get('QUICKPIN_URL', ''))
-def authenticate(url, username, password):
-    qpi = QPI(app_url=url, username=username, password=password)
-    if qpi.authenticated:
-        click.echo('Token obtained, now set `QUICKPIN_TOKEN` environment '
-                   'variable as "{}"'.format(qpi.token))
-        click.echo('e.g. export QUICKPIN_TOKEN="{}"'.format(qpi.token))
-    else:
-        click.echo('Something went wrong :-(')
+@pass_config
+def token(config):
+    """
+    Get API token.
+    """
+    click.echo('Token obtained, now set `QUICKPIN_TOKEN` environment '
+               'variable as "{}"'.format(config.token))
+    click.echo('e.g. export QUICKPIN_TOKEN="{}"'.format(config.token))
 
 
 if __name__ == '__main__':
