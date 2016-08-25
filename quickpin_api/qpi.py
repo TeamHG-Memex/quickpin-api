@@ -74,6 +74,7 @@ class QPI():
         authenticated status.
         """
         payload = {'email': username, 'password': password}
+        print(payload)
         response = requests.post(self.auth_url, json=payload, verify=False)
         response.raise_for_status()
         try:
@@ -231,7 +232,7 @@ class QPI():
             'rpp': rpp,
             'page': page,
         }
-        param_str = "&".join("%s=%s" % (k,v) for k,v in params.items())
+        param_str = "&".join("%s=%s" % (k, v) for k, v in params.items())
         if type_ is not None:
             params['type'] = type_
         if facets is not None:
@@ -248,10 +249,84 @@ class QPI():
         return response
 
 
-@click.group()
-def cli():
-    pass
+class Config(object):
+    """
+    Base configuration class.
+    """
+    def __init__(self):
+        self.app_url = None
+        self.token = None
 
+
+# Create decorator allowing configuration to be passed between commands.
+pass_config = click.make_pass_decorator(Config, ensure=True)
+
+
+@click.group()
+@click.option('--username',
+              type=click.STRING,
+              help='Quickpin username',
+              required=False)
+@click.option('--password',
+              help='Quickpin password',
+              type=click.STRING,
+              required=False)
+@click.option('--token',
+              help='Quickpin api token',
+              envvar='QUICKPIN_TOKEN',
+              type=click.STRING,
+              required=False)
+@click.option('--url',
+              help='Quickpin URL',
+              prompt=True,
+              envvar='QUICKPIN_URL')
+@pass_config
+def cli(config, username, password, token, url):
+    """
+    \b
+    QuickPin API command line client.
+    =================================
+
+    \b
+    Example:
+        $ python qpi.py submit_names usernames.csv twitter --interval=5
+
+    This will parse the usernames contained (1 per line) in the usernames.csv
+    file and submit them 1 by one at an interval of 5 seconds.
+
+    \b
+    For more information:
+        $ python qpi.py --help
+        $ python qpi.py submit_names --help
+        $ python qpi.py submit_ids --help
+
+    \b
+    Set the  environment variables to avoid being prompted each time:
+        1. QUICKPIN_URL
+        1. QUICKPIN_TOKEN
+
+    \b
+    Example:
+        $ export QUICKPIN_URL="https://example.com"
+        $ export QUICKPIN_TOKEN="1|2015-12-09T16:50:59.057635.Y5pm9qB_naw6FkOekcksiFRyMlY"
+    =====================================================================================
+    """
+    config.app_url = url
+
+    if token:
+        config.token = token
+    else:
+        if not username:
+            username = input('Username:')
+        if not password:
+            password = input('Password:')
+
+        qpi = QPI(app_url=url, username=username, password=password)
+
+        if qpi.authenticated:
+            config.token = qpi.token
+        else:
+            raise QPIError('Authenication failure')
 
 @cli.command()
 @click.option('--stub',
@@ -265,17 +340,15 @@ def cli():
 @click.option('--interval',
               default=5,
               help='request interval in seconds')
-@click.option('--token',
-              prompt=True,
-              default=lambda: os.environ.get('QUICKPIN_TOKEN', ''))
 @click.option('--url',
               prompt=True,
               default=lambda: os.environ.get('QUICKPIN_URL', ''))
 @click.argument('input', type=click.File('r'))
 @click.argument('site', type=click.Choice(['twitter', 'instagram']))
-def submit_names(input, site, stub, chunk, interval, token, url):
+@pass_config
+def submit_names(config, input, site, stub, chunk, interval):
     usernames = []
-    qpi = QPI(app_url=url, token=token)
+    qpi = QPI(app_url=config.app_url, token=config.token)
     usernames = input.read().splitlines()
     usernames = [username for username in usernames if username != '']
     if len(usernames) == 0:
@@ -301,17 +374,15 @@ def submit_names(input, site, stub, chunk, interval, token, url):
 @click.option('--interval',
               default=5,
               help='request interval in seconds')
-@click.option('--token',
-              prompt=True,
-              default=lambda: os.environ.get('QUICKPIN_TOKEN', ''))
 @click.option('--url',
               prompt=True,
               default=lambda: os.environ.get('QUICKPIN_URL', ''))
 @click.argument('input', type=click.File('r'))
 @click.argument('site', type=click.Choice(['twitter', 'instagram']))
-def submit_ids(input, site, stub, chunk, interval, token, url):
+@pass_config
+def submit_ids(config, input, site, stub, chunk, interval,):
     user_ids = []
-    qpi = QPI(token=token)
+    qpi = QPI(app_url=config.app_url, token=config.token)
     qpi.authenticate()
     user_ids = input.read().splitlines()
     user_ids = [user_id for user_id in user_ids if user_id != '']
@@ -344,19 +415,14 @@ def submit_ids(input, site, stub, chunk, interval, token, url):
 @click.option('--sort',
               type=click.STRING,
               help='column to sort by')
-@click.option('--token',
-              prompt=True,
-              default=lambda: os.environ.get('QUICKPIN_TOKEN', ''))
-@click.option('--url',
-              prompt=True,
-              default=lambda: os.environ.get('QUICKPIN_URL', ''))
 @click.argument('query', type=click.STRING)
-def search(query, type, facets, page, rpp, sort, token, url):
-    if token is None:
+@pass_config
+def search(config, query, type, facets, page, rpp, sort):
+    if config.token is None:
         raise QPIError('No token found. Please authenticate first by running '
                        'qpi.py authenticate --url [URL] --username [USERNAME] '
                        '--password [PASSWORD]')
-    qpi = QPI(app_url=url, token=token)
+    qpi = QPI(app_url=config.app_url, token=config.token)
     response = qpi.search(query=query,
                           type_=type,
                           facets=facets,
