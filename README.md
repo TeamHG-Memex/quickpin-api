@@ -8,6 +8,16 @@ Includes a simple command line client.
 ```
 $ python qpi.py submit_names usernames.csv twitter --interval=5
 ``` 
+or
+
+```
+$ python qpi.py --token=token submit_names names.csv twitter --interval=5
+```
+or
+```
+$ python qpi.py --username=username --password=password submit_names names.csv twitter --interval=5
+```
+
 This will parse the usernames contained (1 per line) in the usernames.csv file and submit them 1 by one at an interval of 5 seconds.
 
 For more information:
