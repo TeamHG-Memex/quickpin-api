@@ -4,9 +4,9 @@ Wrapper for the QuickPin API.
 
 Includes a simple command line client.
 
-Example: $ python qpi.py submit_names usernames.csv twitter --interval=5
+Example: $ python qpi.py submit_names usernames.txt twitter --interval=5
 
-    This will parse the usernames contained (1 per line) in the usernames.csv
+    This will parse the usernames contained (1 per line) in the usernames.txt
     file and submit them 1 by one at an interval of 5 seconds.
 
     For more information:
@@ -288,9 +288,11 @@ def cli(config, username, password, token, url):
 
     \b
     Example:
-        $ python qpi.py submit_names usernames.csv twitter --interval=5
+        $ python qpi.py submit_names usernames.txt twitter --interval=5
+        or
+        $ python qpi.py --username=username --password=password submit_names usernames.txt twitter
 
-    This will parse the usernames contained (1 per line) in the usernames.csv
+    This will parse the usernames contained (1 per line) in the usernames.txt
     file and submit them 1 by one at an interval of 5 seconds.
 
     \b
