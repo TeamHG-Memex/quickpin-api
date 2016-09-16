@@ -355,9 +355,11 @@ def submit_names(config, input, site, stub, chunk, interval):
     qpi = QPI(app_url=config.app_url, token=config.token)
     usernames = input.read().splitlines()
     usernames = [username for username in usernames if username != '']
+
     if len(usernames) == 0:
         click.echo('Empty file')
         sys.exit()
+
     responses = qpi.submit_usernames(usernames=usernames,
                                      site=site,
                                      stub=stub,
@@ -462,6 +464,7 @@ def notifications(config):
 
     for msg in notifications:
         pprint(msg)
+
 
 if __name__ == '__main__':
     cli()
