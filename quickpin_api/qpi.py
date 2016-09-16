@@ -7,10 +7,13 @@ Includes a simple command line client.
 
 import requests
 import click
+import copy
+import json
 import os
 import time
 import sys
 from pprint import pprint
+from sseclient import SSEClient
 
 
 class QPIError(Exception):
@@ -39,6 +42,7 @@ class QPI():
         self.auth_url = app_url + '/api/authentication/'
         self.profile_url = app_url + '/api/profile/'
         self.search_url = app_url + '/api/search/'
+        self.notification_url = app_url + '/api/notification/'
         self.headers = {}
         self.token = token
 
@@ -212,7 +216,9 @@ class QPI():
             'rpp': rpp,
             'page': page,
         }
+
         param_str = "&".join("%s=%s" % (k, v) for k, v in params.items())
+
         if type_ is not None:
             params['type'] = type_
         if facets is not None:
@@ -224,9 +230,22 @@ class QPI():
                                 headers=self.headers,
                                 params=param_str,
                                 verify=False)
+
         response.raise_for_status()
 
         return response
+
+    def notifications(self):
+        """
+        Yield SSE notifications as json.
+        """
+        if not self.authenticated:
+           raise QPIError("Please authenticate first.")
+
+        messages = SSEClient(self.notification_url, headers=self.headers)
+
+        for msg in messages:
+            yield json.loads(str(msg))
 
 
 class Config(object):
@@ -311,6 +330,7 @@ def cli(config, username, password, token, url):
             config.token = qpi.token
         else:
             raise QPIError('Authenication failure')
+
 
 @cli.command()
 @click.option('--stub',
@@ -430,6 +450,18 @@ def token(config):
                'variable as "{}"'.format(config.token))
     click.echo('e.g. export QUICKPIN_TOKEN="{}"'.format(config.token))
 
+
+@cli.command()
+@pass_config
+def subscribe(config):
+    """
+    Monitor SSE notifications.
+    """
+    qpi = QPI(app_url=config.app_url, token=config.token)
+    notifications = qpi.notifications()
+
+    for msg in notifications:
+        pprint(msg)
 
 if __name__ == '__main__':
     cli()
