@@ -235,7 +235,7 @@ class QPI():
 
         return response
 
-    def notifications(self):
+    def yield_notifications(self):
         """
         Yield SSE notifications as json.
         """
@@ -453,12 +453,12 @@ def token(config):
 
 @cli.command()
 @pass_config
-def subscribe(config):
+def notifications(config):
     """
     Monitor SSE notifications.
     """
     qpi = QPI(app_url=config.app_url, token=config.token)
-    notifications = qpi.notifications()
+    notifications = qpi.yield_notifications()
 
     for msg in notifications:
         pprint(msg)
