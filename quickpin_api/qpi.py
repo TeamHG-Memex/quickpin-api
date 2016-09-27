@@ -399,6 +399,7 @@ def submit_names(config, input, site, stub, chunk, interval):
     """
     Submit profiles by username.
     """
+
     usernames = []
     labels = {}
     results = []
@@ -406,17 +407,21 @@ def submit_names(config, input, site, stub, chunk, interval):
     reader = csv.reader(input)
 
     for row in reader:
-        username = row[0].strip()
+        try:
+            username = row[0].strip()
+        except IndexError:
+            continue  # Empty line
 
-        if username != '':
-            try:
-                profile_labels = [label.strip() for label in row[1].split(',')]
-            except IndexError:
-                profile_labels = []
+        if username == '':
+            continue 
 
-            usernames.append(username)
-            labels[username] = list(set(profile_labels))
-            print(labels)
+        try:
+            profile_labels = [label.strip() for label in row[1].split(',')]
+        except IndexError:
+            profile_labels = []
+
+        usernames.append(username)
+        labels[username] = list(set(profile_labels))
 
     if len(usernames) == 0:
         click.echo('Empty file')
@@ -436,7 +441,7 @@ def submit_names(config, input, site, stub, chunk, interval):
             bar.update(1)
             results.append(response)
 
-    click.echo(results)
+    pprint(results)
 
 
 @cli.command()
@@ -458,6 +463,7 @@ def submit_ids(config, input, site, stub, chunk, interval):
     """
     Submit profiles by ID.
     """
+
     user_ids = []
     labels = {}
     results = []
@@ -465,16 +471,21 @@ def submit_ids(config, input, site, stub, chunk, interval):
     reader = csv.reader(input)
 
     for row in reader:
-        user_id = row[0].strip()
+        try:
+            user_id = row[0].strip()
+        except IndexError:
+            continue  # Empty line
 
-        if user_id != '':
-            try:
-                profile_labels = [label.strip() for label in row[1].split(',')]
-            except IndexError:
-                profile_labels = []
+        if user_id == '':
+            continue
 
-            user_ids.append(user_id)
-            labels[user_id] = list(set(profile_labels))
+        try:
+            profile_labels = [label.strip() for label in row[1].split(',')]
+        except IndexError:
+            profile_labels = []
+
+        user_ids.append(user_id)
+        labels[user_id] = list(set(profile_labels))
 
     if len(user_ids) == 0:
         click.echo('Empty file')
@@ -494,7 +505,7 @@ def submit_ids(config, input, site, stub, chunk, interval):
             bar.update(1)
             results.append(response)
 
-    click.echo(results)
+    pprint(results)
 
 
 @cli.command()
