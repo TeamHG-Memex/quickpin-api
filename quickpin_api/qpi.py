@@ -7,13 +7,12 @@ Includes a simple command line client.
 
 import requests
 import click
-import copy
 import csv
 import json
-import os
 import sys
 import time
 import urllib
+from getpass import getpass
 from pprint import pprint
 from sseclient import SSEClient
 
@@ -35,8 +34,7 @@ class QPI():
                  password=None,
                  disable_warnings=True):
 
-
-        self.app_url =  app_url.rstrip('/')
+        self.app_url = app_url.rstrip('/')
         self.username = username
         self.password = password
         self.auth_url = app_url + '/api/authentication/'
@@ -220,8 +218,8 @@ class QPI():
     def get(self, resource, page=1, rpp=100):
         """
         Fetch JSON from resource.
-        
-        Example: 
+
+        Example:
             qpi.get('/api/profile/')
         """
         if not self.authenticated:
@@ -233,7 +231,7 @@ class QPI():
         }
 
         url = urllib.parse.urljoin(self.app_url, resource)
-        response = requests.get(url, headers=self.headers, 
+        response = requests.get(url, headers=self.headers,
                                 params=params, verify=False)
 
         response.raise_for_status()
@@ -289,7 +287,7 @@ class QPI():
         Yield SSE notifications as json.
         """
         if not self.authenticated:
-           raise QPIError("Please authenticate first.")
+            raise QPIError("Please authenticate first.")
 
         print(self.notification_url)
         messages = SSEClient(self.notification_url, headers=self.headers)
@@ -338,20 +336,20 @@ def cli(config, username, password, token, url):
 
     \b
     Examples:
-        $ python qpi.py submit_names usernames.txt twitter --interval=5
+        $ quickpin submit_names usernames.txt twitter --interval=5
         or
-        $ python qpi.py --username=username --password=password submit_names usernames.txt twitter --interval=5
+        $ quickpin --username=username --password=password submit_names usernames.txt twitter --interval=5
         or
-        $ python qpi.py --token=token submit_names usernames.txt twitter --interal=5
+        $ quickpin --token=token submit_names usernames.txt twitter --interal=5
 
     This will parse the usernames contained (1 per line) in the usernames.txt
     file and submit them 1 by one at an interval of 5 seconds.
 
     \b
     For more information:
-        $ python qpi.py --help
-        $ python qpi.py submit_names --help
-        $ python qpi.py submit_ids --help
+        $ quickpin --help
+        $ quickpin submit_names --help
+        $ quickpin qpi.py submit_ids --help
 
     \b
     Set the  environment variables to avoid being prompted each time:
@@ -372,7 +370,7 @@ def cli(config, username, password, token, url):
         if not username:
             username = input('Username:')
         if not password:
-            password = input('Password:')
+            password = getpass()
 
         qpi = QPI(app_url=url, username=username, password=password)
 
