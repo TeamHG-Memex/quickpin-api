@@ -39,3 +39,9 @@ $ export QUICKPIN_URL="https://example.com"
 $ export QUICKPIN_TOKEN="1|2015-12-09T16:50:59.057635.Y5pm9qB_naw6FkOekcksiFRyMlY"
 ```
 
+## Tests
+```
+$ pip install nose
+$ nosetests --nocapture
+```
+Note: --nocapture is required to allow user input.

@@ -8,7 +8,7 @@ def read(fname):
 
 setup(
     name = "quickpin_api",
-    version = "0.0.1",
+    version = "0.0.2",
     author = "Luke Maxwell",
     author_email = "lukemaxwellshouse@gmail.com",
     description = ("A python wrapper for the QuickPin API."),
@@ -19,7 +19,8 @@ setup(
     include_package_data = True,
     install_requires = [
         'requests',
-        'click'
+        'click',
+        'sseclient'
     ],
     scripts = [],
     long_description=read('README.md'),
