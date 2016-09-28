@@ -164,7 +164,6 @@ class QPI():
                 'site': site,
                 'labels': profile_labels
             }
-            print(profile)
             profiles.append(profile)
 
         responses = self.submit_profiles(profiles=profiles,
@@ -313,16 +312,17 @@ class QPI():
         if not self.authenticated:
             raise QPIError("Please authenticate first.")
 
-        print(self.notification_url)
         messages = SSEClient(self.notification_url, headers=self.headers)
 
         for msg in messages:
             yield json.loads(str(msg))
 
+
 def _parse_labels(text):
     text = text.strip()
     labels = [label.strip() for label in text.split('|')]
     return labels
+
 
 class Config(object):
     """
@@ -435,14 +435,13 @@ def submit_names(config, input, site, stub, chunk, interval):
     reader = csv.reader(input, quotechar='"', delimiter=',')
 
     for row in reader:
-        print(row)
         try:
             username = row[0].strip()
         except IndexError:
             continue  # Empty line
 
         if username == '':
-            continue 
+            continue
 
         try:
             profile_labels = _parse_labels(row[1])
@@ -452,7 +451,6 @@ def submit_names(config, input, site, stub, chunk, interval):
         usernames.append(username)
         labels[username] = list(set(profile_labels))
         click.echo('Labels: ')
-        pprint(labels)
 
     if len(usernames) == 0:
         click.echo('Empty file')
@@ -522,7 +520,6 @@ def submit_ids(config, input, site, stub, chunk, interval):
         click.echo('Empty file')
         sys.exit()
 
-    pprint(labels)
     responses = qpi.submit_user_ids(user_ids=user_ids,
                                     site=site,
                                     stub=stub,
@@ -594,6 +591,7 @@ def get(config, resource, page, rpp):
                        page=page,
                        rpp=rpp)
     pprint(response.json())
+
 
 @cli.command()
 @click.argument('resource', type=click.STRING, required=True)
