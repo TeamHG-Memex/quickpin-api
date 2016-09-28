@@ -37,12 +37,14 @@ class QPI():
         self.app_url = app_url.rstrip('/')
         self.username = username
         self.password = password
+        self.api_url = app_url + '/api/'
         self.auth_url = app_url + '/api/authentication/'
         self.profile_url = app_url + '/api/profile/'
         self.search_url = app_url + '/api/search/'
         self.notification_url = app_url + '/api/notification/'
         self.headers = {}
         self.token = token
+        self.allowed_response_codes = [200, 202]
 
         if disable_warnings:
             requests.packages.urllib3.disable_warnings()
@@ -104,14 +106,14 @@ class QPI():
 
         for user_id in user_ids:
             if user_id in labels:
-                labels = labels[user_id]
+                profile_labels = labels[user_id]
             else:
-                labels = []
+                profile_labels = []
 
             profile = {
                 'upstream_id': user_id,
                 'site': site,
-                'labels': labels
+                'labels': profile_labels
             }
             profiles.append(profile)
 
@@ -153,15 +155,16 @@ class QPI():
         profiles = []
         for username in usernames:
             if username in labels:
-                labels = labels[username]
+                profile_labels = labels[username]
             else:
-                labels = []
+                profile_labels = []
 
             profile = {
                 'username': username,
                 'site': site,
-                'labels': labels
+                'labels': profile_labels
             }
+            print(profile)
             profiles.append(profile)
 
         responses = self.submit_profiles(profiles=profiles,
@@ -210,7 +213,10 @@ class QPI():
                                      headers=self.headers,
                                      json=payload,
                                      verify=False)
-            response.raise_for_status()
+
+            if response not in self.allowed_response_codes:
+                pprint(response.content)
+                response.raise_for_status()
 
             yield response.content
             time.sleep(interval)
@@ -220,7 +226,7 @@ class QPI():
         Fetch JSON from resource.
 
         Example:
-            qpi.get('/api/profile/')
+            qpi.get('profile/')
         """
         if not self.authenticated:
             raise QPIError("Please authenticate first.")
@@ -230,9 +236,27 @@ class QPI():
             'page': page,
         }
 
-        url = urllib.parse.urljoin(self.app_url, resource)
+        url = urllib.parse.urljoin(self.api_url, resource)
         response = requests.get(url, headers=self.headers,
                                 params=params, verify=False)
+
+        response.raise_for_status()
+
+        return response
+
+    def delete(self, resource):
+        """
+        Delete JSON resource.
+
+        Example:
+            qpi.delete('profile/1234')
+        """
+        if not self.authenticated:
+            raise QPIError("Please authenticate first.")
+
+        url = urllib.parse.urljoin(self.api_url, resource)
+        response = requests.delete(url, headers=self.headers,
+                                   verify=False)
 
         response.raise_for_status()
 
@@ -295,6 +319,10 @@ class QPI():
         for msg in messages:
             yield json.loads(str(msg))
 
+def _parse_labels(text):
+    text = text.strip()
+    labels = [label.strip() for label in text.split('|')]
+    return labels
 
 class Config(object):
     """
@@ -404,9 +432,10 @@ def submit_names(config, input, site, stub, chunk, interval):
     labels = {}
     results = []
     qpi = QPI(app_url=config.app_url, token=config.token)
-    reader = csv.reader(input)
+    reader = csv.reader(input, quotechar='"', delimiter=',')
 
     for row in reader:
+        print(row)
         try:
             username = row[0].strip()
         except IndexError:
@@ -416,12 +445,14 @@ def submit_names(config, input, site, stub, chunk, interval):
             continue 
 
         try:
-            profile_labels = [label.strip() for label in row[1].split(',')]
+            profile_labels = _parse_labels(row[1])
         except IndexError:
             profile_labels = []
 
         usernames.append(username)
         labels[username] = list(set(profile_labels))
+        click.echo('Labels: ')
+        pprint(labels)
 
     if len(usernames) == 0:
         click.echo('Empty file')
@@ -468,7 +499,7 @@ def submit_ids(config, input, site, stub, chunk, interval):
     labels = {}
     results = []
     qpi = QPI(app_url=config.app_url, token=config.token)
-    reader = csv.reader(input)
+    reader = csv.reader(input, quotechar='"', delimiter=',')
 
     for row in reader:
         try:
@@ -480,7 +511,7 @@ def submit_ids(config, input, site, stub, chunk, interval):
             continue
 
         try:
-            profile_labels = [label.strip() for label in row[1].split(',')]
+            profile_labels = _parse_labels(row[1])
         except IndexError:
             profile_labels = []
 
@@ -490,6 +521,7 @@ def submit_ids(config, input, site, stub, chunk, interval):
     if len(user_ids) == 0:
         click.echo('Empty file')
         sys.exit()
+
     pprint(labels)
     responses = qpi.submit_user_ids(user_ids=user_ids,
                                     site=site,
@@ -555,12 +587,23 @@ def search(config, query, type, facets, page, rpp, sort):
 @pass_config
 def get(config, resource, page, rpp):
     """
-    Search profiles.
+    Get JSON resource.
     """
     qpi = QPI(app_url=config.app_url, token=config.token)
     response = qpi.get(resource=resource,
                        page=page,
                        rpp=rpp)
+    pprint(response.json())
+
+@cli.command()
+@click.argument('resource', type=click.STRING, required=True)
+@pass_config
+def delete(config, resource):
+    """
+    Delete resource.
+    """
+    qpi = QPI(app_url=config.app_url, token=config.token)
+    response = qpi.delete(resource=resource)
     pprint(response.json())
 
 
