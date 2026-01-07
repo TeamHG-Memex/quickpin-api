@@ -1,0 +1,7 @@
+./setup.py
+./AGENTS.md
+./README.md
+./quickpin_api/qpi.py
+./test/__init__.py
+./test/test_common.py
+./test/test_authenticate.py
